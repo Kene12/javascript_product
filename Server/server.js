@@ -27,6 +27,7 @@ mongoose.connect(secrets.MONGO_URI, {
 app.use('/auth', require('./routes/authRoutes'));
 app.use('/manage', require('./routes/manageRoutes'));
 app.use('/userManage', require('./routes/userManage'));
+app.use('/product', require('./routes/productManage'))
 
 const PORT = secrets.PORT || 500;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
