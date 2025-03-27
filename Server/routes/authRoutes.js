@@ -40,8 +40,10 @@ router.post('/registerAdmin', async (req, res) =>{
 
 router.post('/login', async (req, res) => {
     try {
-      const { email, password } = req.body;
-      const user = await acc.findOne({ email });
+      const { iden, password } = req.body;
+      const user = await acc.findOne({ 
+        $or: [{email: iden }, {username: iden }]
+      });
   
       if (!user) return res.status(400).json({ error: "User not found" });
   
