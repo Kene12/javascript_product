@@ -3,7 +3,6 @@ const Product = require('../models/product');
 const secrets = require('../config/secrets.json');
 const acc = require('../models/Account');
 const jwt = require("jsonwebtoken");
-const product = require('../models/product');
 
 const router = express.Router();
 
