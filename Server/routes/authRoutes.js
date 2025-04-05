@@ -73,6 +73,7 @@ router.get("/my", (req, res) => {
   if (!token) return res.status(401).json({ error: "Not authenticated" });
 
   try {
+    // const verified = jwt.verify(token, env.JWT_SECRET);
     const verified = jwt.verify(token, secrets.JWT_SECRET);
     res.json({ userId: verified.id });
   } catch (err) {
