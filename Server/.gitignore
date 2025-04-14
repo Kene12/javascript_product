@@ -1,0 +1,14 @@
+# Config / secrets
+.env
+
+# Node modules
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Editor config
+.vscode/
+.DS_Store

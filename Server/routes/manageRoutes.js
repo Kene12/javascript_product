@@ -2,7 +2,7 @@ const express = require('express');
 const jwt = require("jsonwebtoken");
 const bcrypt = require('bcryptjs');
 const acc = require('../models/Account');
-const secrets = require('../config/secrets.json');
+require('dotenv').config();
 
 const router = express.Router();
 
@@ -11,7 +11,7 @@ const isAdmin = async (req, res, next) => {
       const token = req.cookies.token;
       if (!token) return res.status(401).json({ error: "Not authenticated" });
 
-      const verified = jwt.verify(token, secrets.JWT_SECRET);
+      const verified = jwt.verify(token, process.env.JWT_SECRET);
       const adminUser = await acc.findById(verified.id);
       
       if (!adminUser || adminUser.role !== "Admin") {
