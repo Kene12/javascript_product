@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import Products from "./pages/Products";
+import Register from "./pages/register";
 
 function LoginPage() {
   const [iden, setIden] = useState("");
@@ -27,6 +28,7 @@ function LoginPage() {
       if (res.ok) {
         setMessage("✅ Login Success: ");
         setLoggedIn(true);
+        navigate("/products");
       } else {
         setMessage("❌ " + data.error);
         setLoggedIn(false);
@@ -48,7 +50,10 @@ function LoginPage() {
           type="text"
           placeholder="Username or Email"
           value={iden}
-          onChange={(e) => setIden(e.target.value)}
+          onChange={(e) => {
+            setIden(e.target.value)
+            setMessage("");
+          }}
           className="w-full px-4 py-2 border rounded-md"
           required
         />
@@ -57,13 +62,17 @@ function LoginPage() {
           type="password"
           placeholder="Password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value)
+            setMessage("");
+          }}
           className="w-full px-4 py-2 border rounded-md"
           required
         />
 
         <button
           type="submit"
+          
           className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
         >
           Login
@@ -80,7 +89,14 @@ function LoginPage() {
             ไปยังหน้าสินค้า
           </button>
         )}
+        
       </form>
+      <button
+          type="button"
+          onClick={() => navigate("/Register")}
+        >
+          Register
+      </button>
     </div>
   );
 }
@@ -91,6 +107,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/products" element={<Products />} />
+        <Route path="/Register" element={<Register />} />
       </Routes>
     </Router>
   );
