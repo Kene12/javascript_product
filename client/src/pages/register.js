@@ -39,7 +39,15 @@ function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+      
       <form onSubmit={handleRegister} className="bg-white p-6 rounded-lg shadow-md w-full max-w-md space-y-4">
+      <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="inline-block text-purple-600 hover:text-purple-800 text-lg font-medium transition"
+        >
+            ⬅️ Back
+        </button>
         <h2 className="text-2xl font-bold text-center">Register</h2>
 
         <input
