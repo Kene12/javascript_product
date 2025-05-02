@@ -24,6 +24,7 @@ function LoginPage() {
 
       const data = await res.json();
       if (res.ok) {
+        localStorage.setItem("auth", "true"); // บันทึกว่า login แล้ว
         setMessage("✅ Login Success: ");
         setLoggedIn(true);
         navigate("/products");
@@ -86,15 +87,7 @@ function LoginPage() {
 
         {message && <p className="text-center text-sm text-red-500">{message}</p>}
 
-        {loggedIn && (
-          <button
-            type="button"
-            onClick={() => navigate("/products")}
-            className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700"
-          >
-            ไปยังหน้าสินค้า
-          </button>
-        )}
+        
         <button
           type="button"
           className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
