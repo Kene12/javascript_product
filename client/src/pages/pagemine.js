@@ -1,7 +1,12 @@
 import { Link } from 'react-router-dom';
-import React from 'react';
+import { React, useEffect } from 'react';
 
 export default function MainPage() {
+  useEffect(() => {
+    if (localStorage.getItem("auth") === null) {
+      localStorage.setItem("auth", "false");
+    }
+  }, []);
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-100 to-indigo-200">
       <nav className="bg-white shadow-md py-4 px-8 flex justify-between items-center">

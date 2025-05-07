@@ -1,4 +1,3 @@
-// client/src/App.js
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Products from "./pages/Products";
 import Register from "./pages/register";
