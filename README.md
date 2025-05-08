@@ -54,13 +54,14 @@ npm install
 PORT=5000
 MONGO_URI=your_mongo_connection_string
 JWT_SECRET=your_jwt_secret_key
-NODE_ENV=development
+NODE_ENV=development / production
 ```
+
 
 Start the server:
 
 ```bash
-node server.js
+npm start
 # or use: npx nodemon server.js
 ```
 
