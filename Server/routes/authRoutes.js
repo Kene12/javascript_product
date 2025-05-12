@@ -22,6 +22,22 @@ router.post('/registerUser', async (req, res) =>{
     }
 });
 
+router.post('/registerMerchant', async (req, res) =>{
+  try{
+      const { username, email, password } =req.body;
+      const typeUser = "Merchant";
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      const newUser = new acc({username, email, password: hashedPassword, role: typeUser});
+      await newUser.save();
+
+      res.json({ message: "User registered successfully!"});
+  } catch(err){
+      res.status(500).json({ error: err.message });
+  }
+});
+
 router.post('/registerAdmin', async (req, res) =>{
   try{
       const { username, email, password } =req.body;
@@ -68,14 +84,26 @@ router.post("/logout", (req, res) => {
   res.json({ message: "Logged out successfully" });
 });
 
-router.get("/my", (req, res) => {
+router.get("/my", async (req, res) => {
   const token = req.cookies.token;
-  if (!token) return res.status(401).json({ error: "Not authenticated" });
+
+  if (!token) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
 
   try {
-    // const verified = jwt.verify(token, env.JWT_SECRET);
-    const verified = jwt.verify(token, process.env.JWT_SECRET);
-    res.json({ userId: verified.id });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await acc.findById(decoded.id).select("username role");
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({
+      userId: decoded.id,
+      username: user.username,
+      role: user.role,
+    });
   } catch (err) {
     res.status(401).json({ error: "Invalid token" });
   }

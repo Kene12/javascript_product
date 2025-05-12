@@ -7,7 +7,6 @@ function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPass] = useState("");
   const [message, setMessage] = useState("");
-  const [registered, setRegistered] = useState(false);
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
@@ -26,11 +25,9 @@ function RegisterPage() {
       const data = await res.json();
       if (res.ok) {
         setMessage("✅ Register Success!");
-        setRegistered(true);
-        navigate("/");
+        navigate("/Login");
       } else {
         setMessage("❌ " + data.error);
-        setRegistered(false);
       }
     } catch (err) {
       setMessage("❌ Error: " + err.message);

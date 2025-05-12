@@ -1,6 +1,7 @@
 const express = require('express');
 const Product = require('../models/product');
 const acc = require('../models/Account');
+const Cart = require('../models/Cart');
 const jwt = require("jsonwebtoken");
 require('dotenv').config();
 
@@ -129,5 +130,64 @@ router.get('/product/:id', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+router.get('/products', async (req, res) => {
+    try {
+        const products = await Product.find().select('-__v'); // ไม่ต้องส่ง __v
+        res.json(products);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post("/add", async (req, res) => {
+  const token = req.cookies.token;
+  if (!token) return res.status(401).json({ error: "Not authenticated" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { productId, quantity } = req.body;
+
+    if (!productId || !quantity || quantity <= 0) {
+      return res.status(400).json({ error: "Invalid product or quantity" });
+    }
+
+    const existing = await Product.findOne({
+      userId: decoded.id,
+      productId: productId,
+    });
+
+    if (existing) {
+      existing.quantity += quantity;
+      await existing.save();
+    } else {
+      const newItem = new Cart({
+        userId: decoded.id,
+        productId,
+        quantity,
+      });
+      await newItem.save();
+    }
+
+    res.json({ message: "✅ Product added to cart" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/my", async (req, res) => {
+  const token = req.cookies.token;
+  if (!token) return res.status(401).json({ error: "Not authenticated" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const cartItems = await Cart.find({ userId: decoded.id }).populate("productId", "productName price");
+
+    res.json(cartItems);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 module.exports = router;

@@ -1,20 +1,57 @@
-import { Link } from 'react-router-dom';
-import { React, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
 export default function MainPage() {
+  const [auth, setAuth] = useState("false");
+  const navigate = useNavigate();
   useEffect(() => {
-    if (localStorage.getItem("auth") === null) {
+    const storedAuth = localStorage.getItem("auth");
+    if (storedAuth === null) {
       localStorage.setItem("auth", "false");
+    } else {
+      setAuth(storedAuth);
     }
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/auth/logout", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        localStorage.setItem("auth", "false");
+        setAuth("false");
+        navigate("/");
+      } else {
+        console.error("Logout failed.");
+      }
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-100 to-indigo-200">
       <nav className="bg-white shadow-md py-4 px-8 flex justify-between items-center">
         <div className="text-2xl font-bold text-indigo-600">My App</div>
         <div className="flex space-x-6 text-gray-700">
           <Link to="/" className="hover:text-indigo-600">Home</Link>
-          <Link to="/login" className="hover:text-indigo-600">Login</Link>
-          <Link to="/register" className="hover:text-indigo-600">Register</Link>
+
+          {auth === "false" ? (
+            <>
+              <Link to="/login" className="hover:text-indigo-600">Login</Link>
+              <Link to="/register" className="hover:text-indigo-600">Register</Link>
+            </>
+          ) : (
+            <button onClick={handleLogout} className="hover:text-red-600">
+              Logout
+            </button>
+          )}
         </div>
       </nav>
 
