@@ -12,6 +12,7 @@ function ProductPage() {
   const [typeUser, setTypeUser] = useState("");
 
   const navigate = useNavigate();
+  const [visibleCount, setVisibleCount] = useState(9);
 
   useEffect(() => {
     const auth = localStorage.getItem("auth");
@@ -83,6 +84,7 @@ function ProductPage() {
 
       if (res.ok) {
         setCartCount((prev) => prev + 1);
+        await fetchCartItems();
       } else {
         navigate("/login");
       }
@@ -90,6 +92,65 @@ function ProductPage() {
       alert("❌ Error adding to cart: " + err.message);
     }
   };
+
+  const handleIncreaseQuantity = async (productId) => {
+    try {
+      const res = await fetch("http://localhost:5000/product/add", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ productId, quantity: 1 }),
+      });
+      if (res.ok) {
+        await fetchCartItems();
+      }
+    } catch (err) {
+      alert("❌ Error: " + err.message);
+    }
+  };
+
+  const handleDecreaseQuantity = async (productId) => {
+    try {
+      const res = await fetch("http://localhost:5000/product/remove", {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ productId }),
+      });
+      if (res.ok) {
+        await fetchCartItems();
+      }
+    } catch (err) {
+      alert("❌ Error: " + err.message);
+    }
+  };
+
+  const handleRemoveFromCart = async (productId) => {
+    try {
+      const res = await fetch("http://localhost:5000/product/removeAll", {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ productId }),
+      });
+
+      if (res.ok) {
+        setCartCount((prev) => prev - 1);
+        await fetchCartItems();
+      } else {
+        const data = await res.json();
+        alert("❌ " + (data.error || "Failed to remove item"));
+      }
+    } catch (err) {
+      alert("❌ Error: " + err.message);
+    }
+};
 
   const handleLogout = async () => {
     try {
@@ -159,12 +220,27 @@ function ProductPage() {
             </>
           ) : (
             <>
-              {typeUser === "merchant" && (
+              {(typeUser === "merchant" || typeUser === "admin") && (
                 <button
                   onClick={() => navigate("/products")}
                   className="text-blue-600 hover:text-blue-800 font-medium"
                 >
                   Manage Products
+                </button>
+              )}
+              {typeUser === "admin" ? (
+                <button
+                  onClick={() => navigate("/Userlist")}
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  List User
+                </button>
+              ) : (
+                <button
+                  onClick={() => navigate("/UserDetails")}
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  User
                 </button>
               )}
               <button
@@ -193,9 +269,32 @@ function ProductPage() {
                 ) : (
                   <ul className="space-y-2">
                     {Object.entries(groupedCart).map(([id, item]) => (
-                      <li key={id} className="text-sm flex justify-between">
-                        <span>{item.name} × {item.quantity}</span>
-                        <span>฿{item.price * item.quantity}</span>
+                      <li key={id} className="text-sm flex justify-between items-center">
+                        <div className="flex flex-col">
+                          <span className="font-medium">{item.name}</span>
+                          <span className="text-gray-500">฿{item.price * item.quantity}</span>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <button
+                              onClick={() => handleDecreaseQuantity(id)}
+                              className="bg-gray-300 hover:bg-gray-400 px-2 rounded"
+                            >
+                              −
+                            </button>
+                            <span>{item.quantity}</span>
+                            <button
+                              onClick={() => handleIncreaseQuantity(id)}
+                              className="bg-gray-300 hover:bg-gray-400 px-2 rounded"
+                            >
+                              +
+                            </button>
+                            <button
+                              onClick={() => handleRemoveFromCart(id)}
+                              className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs ml-auto"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -211,23 +310,54 @@ function ProductPage() {
       ) : error ? (
         <p className="text-red-600">{"Connect Server"}</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {products.map((product) => (
-            <div
-              key={product._id}
-              className="bg-white p-4 rounded-lg shadow-md text-center space-y-2"
-            >
-              <div className="text-lg font-semibold">{product.productName}</div>
-              <div className="text-gray-600">฿{product.price}</div>
-                <button
-                  onClick={() => handleBuy(product._id)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-                >
-                  Buy
-                </button>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {products.slice(0, visibleCount).map((product) => (
+              <div
+                key={product._id}
+                className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300"
+              >
+                {product.img?.data ? (
+                  <img
+                    src={`data:${product.img.contentType};base64,${btoa(
+                      String.fromCharCode(...new Uint8Array(product.img.data.data))
+                    )}`}
+                    alt={product.productName}
+                    className="w-full h-48 object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-500">
+                    No Image
+                  </div>
+                )}
+
+                <div className="p-4 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-bold">{product.productName}</h3>
+                    <span className="text-blue-600 font-semibold">฿{product.price}</span>
+                  </div>
+                  <p className="text-sm text-gray-500">Category: {product.category || "N/A"}</p>
+                  <button
+                    onClick={() => handleBuy(product._id)}
+                    className="w-full mt-2 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
+                  >
+                    Buy
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          {visibleCount < products.length && (
+            <div className="text-center mt-6">
+              <button
+                onClick={() => setVisibleCount(visibleCount + 10)}
+                className="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-900 transition"
+              >
+                Load more
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   );

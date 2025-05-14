@@ -6,35 +6,65 @@ require('dotenv').config();
 
 const router = express.Router();
 
-router.post('/registerUser', async (req, res) =>{
-    try{
-        const { username, email, password } =req.body;
-        const typeUser = "User";
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+router.post('/registerUser', async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+    const typeUser = "User";
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-        const newUser = new acc({username, email, password: hashedPassword, role: typeUser});
-        await newUser.save();
+    const newUser = new acc({
+      username,
+      email,
+      password: hashedPassword,
+      role: typeUser,
+    });
 
-        res.json({ message: "User registered successfully!"});
-    } catch(err){
-        res.status(500).json({ error: err.message });
+    await newUser.save();
+
+    res.json({ message: "User registered successfully!" });
+  } catch (err) {
+    if (err.code === 11000) {
+      if (err.keyPattern.username) {
+        return res.status(400).json({ error: "Username is already taken" });
+      }
+      if (err.keyPattern.email) {
+        return res.status(400).json({ error: "Email is already registered" });
+      }
     }
+
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 router.post('/registerMerchant', async (req, res) =>{
-  try{
-      const { username, email, password } =req.body;
-      const typeUser = "Merchant";
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
+  try {
+    const { username, email, password } = req.body;
+    const typeUser = "Merchan";
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-      const newUser = new acc({username, email, password: hashedPassword, role: typeUser});
-      await newUser.save();
+    const newUser = new acc({
+      username,
+      email,
+      password: hashedPassword,
+      role: typeUser,
+    });
 
-      res.json({ message: "User registered successfully!"});
-  } catch(err){
-      res.status(500).json({ error: err.message });
+    await newUser.save();
+
+    res.json({ message: "User registered successfully!" });
+  } catch (err) {
+    if (err.code === 11000) {
+      if (err.keyPattern.username) {
+        return res.status(400).json({ error: "Username is already taken" });
+      }
+      if (err.keyPattern.email) {
+        return res.status(400).json({ error: "Email is already registered" });
+      }
+    }
+
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -93,7 +123,7 @@ router.get("/my", async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await acc.findById(decoded.id).select("username role");
+    const user = await acc.findById(decoded.id).select("username role email");
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -102,6 +132,7 @@ router.get("/my", async (req, res) => {
     res.json({
       userId: decoded.id,
       username: user.username,
+      email: user.email,
       role: user.role,
     });
   } catch (err) {

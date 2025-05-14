@@ -6,6 +6,8 @@ import Merchant from "./pages/merchant.js";
 import LoginPage from "./pages/loginpage";
 import MainPage from "./pages/ProductPage.js";
 import AddProducts from "./pages/AddProducts.js";
+import UserDetails from "./pages/UserDetails.js";
+import Userlist from "./pages/Userlist.js";
 import ProtectedRoute from "./components/ProtectedLoginRoute";
 
 function App() {
@@ -23,6 +25,8 @@ function App() {
         <Route path="/Customer" element={<Customer />} />
         <Route path="/Merchant" element={<Merchant />} />
         <Route path="/AddProducts" element={<AddProducts />} />
+        <Route path="/UserDetails" element={<UserDetails />} />
+        <Route path="/Userlist" element={<Userlist />} />
       </Routes>
     </Router>
   );

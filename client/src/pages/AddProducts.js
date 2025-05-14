@@ -8,26 +8,28 @@ function AddProducts() {
   const [stock, setStock] = useState("");
   const [category, setCategory] = useState("");
   const [message, setMessage] = useState("");
+  const [image, setImage] = useState(null);
 
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const formData = new FormData();
+    formData.append("productName", productName);
+    formData.append("description", description);
+    formData.append("price", price);
+    formData.append("stock", stock);
+    formData.append("category", category);
+    if (image) {
+      formData.append("image", image);
+    }
+
     try {
       const res = await fetch("http://localhost:5000/product/plusProduct", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         credentials: "include",
-        body: JSON.stringify({
-          productName,
-          description,
-          price,
-          stock,
-          category,
-        }),
+        body: formData,
       });
 
       const data = await res.json();
@@ -39,6 +41,7 @@ function AddProducts() {
         setPrice("");
         setStock("");
         setCategory("");
+        setImage(null);
       } else {
         setMessage("❌ " + data.error);
       }
@@ -104,7 +107,12 @@ function AddProducts() {
           onChange={(e) => setCategory(e.target.value)}
           className="w-full px-4 py-2 border rounded-md"
         />
-
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setImage(e.target.files[0])}
+          className="w-full px-4 py-2 border rounded-md"
+        />
         {message && (
           <p
             className={`text-center text-sm ${

@@ -4,10 +4,14 @@ import { useNavigate, Link } from "react-router-dom";
 function Products() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     document.title = "Manage Products";
+    const storedRole = localStorage.getItem("typeUser");
+    setRole(storedRole?.toLowerCase());
+
     fetch("http://localhost:5000/product/showProduct", {
       credentials: "include"
     })
@@ -32,7 +36,7 @@ function Products() {
   }, [navigate]);
 
   const handleDelete = async (productId) => {
-    if (!window.confirm("คุณแน่ใจหรือว่าต้องการลบสินค้านี้?")) return;
+    if (!window.confirm("Are you sure you want to delete this item?")) return;
 
     try {
       const res = await fetch("http://localhost:5000/product/deleteProduct", {
@@ -48,10 +52,10 @@ function Products() {
         setProducts(products.filter((p) => p._id !== productId));
       } else {
         const data = await res.json();
-        console.error("ไม่สามารถลบสินค้าได้:", data.error);
+        console.error("Unable to delete product:", data.error);
       }
     } catch (err) {
-      console.error("เกิดข้อผิดพลาดในการลบสินค้า:", err);
+      console.error("There was an error deleting the product:", err);
     }
   };
 
@@ -87,7 +91,11 @@ function Products() {
         <div className="flex space-x-6 text-gray-700">
           <Link to="/" className="hover:text-indigo-600">Home</Link>
           <Link to="/AddProducts" className="hover:text-indigo-600">Add Product</Link>
-          <Link to="/users/manage" className="hover:text-indigo-600">User</Link>
+          {role === "admin" ? (
+            <Link to="/Userlist" className="hover:text-indigo-600">List User</Link>
+          ) : (
+            <Link to="/UserDetails" className="hover:text-indigo-600">User</Link>
+          )}
           <button onClick={handleLogout} className="hover:text-red-600">Logout</button>
         </div>
       </nav>
@@ -106,20 +114,20 @@ function Products() {
                 <p className="font-semibold">{p.productName}</p>
                 <p>{p.description}</p>
                 <p>ราคา: {p.price}</p>
-                <div className="mt-2 space-x-2">
-                  <button
-                    onClick={() => handleEdit(p._id)}
-                    className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-1 rounded"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(p._id)}
-                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded"
-                  >
-                    Delete
-                  </button>
-                </div>
+                  <div className="mt-2 space-x-2">
+                    <button
+                      onClick={() => handleEdit(p._id)}
+                      className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-1 rounded"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(p._id)}
+                      className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded"
+                    >
+                      Delete
+                    </button>
+                  </div>
               </li>
             ))}
           </ul>

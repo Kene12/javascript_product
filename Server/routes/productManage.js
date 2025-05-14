@@ -4,10 +4,13 @@ const acc = require('../models/Account');
 const Cart = require('../models/Cart');
 const jwt = require("jsonwebtoken");
 require('dotenv').config();
+const multer = require("multer");
 
 const router = express.Router();
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
-router.post("/plusProduct", async (req, res) => {
+router.post("/plusProduct", upload.single("image"), async (req, res) => {
     try{
         const token = req.cookies.token;
         if (!token) return res.status(401).json({ error: "Not authenticated" });
@@ -23,9 +26,16 @@ router.post("/plusProduct", async (req, res) => {
             price,
             stock: stock || 0,
             category: category || "non-category",
-            craetedAt: Date.now(),
+            createdAt: Date.now(),
             createdBy: _id
         });
+
+        if (req.file) {
+          newProduct.img = {
+            data: req.file.buffer,
+            contentType: req.file.mimetype
+          };
+        }
         
         await newProduct.save();
 
@@ -67,14 +77,14 @@ router.patch('/editProduct', async (req, res) => {
       const user = await acc.findById(verified.id);
       if (!user) return res.status(404).json({ error: "User not found" });
   
-      const { productId, productName, description, price, stock, category } = req.body; // ส่ง http
+      const { productId, productName, description, price, stock, category } = req.body;
   
       if (!productId) return res.status(400).json({ error: "Product ID is required" });
   
       const product = await Product.findById(productId);
       if (!product) return res.status(404).json({ error: "Product not found" });
 
-      if (user.role !== "Admin" && String(product.createdBy) !== String(user._id)) { //ต้องเป็นเจ้าของ product หรือต้องเป็น admin
+      if (user.role !== "Admin" && String(product.createdBy) !== String(user._id)) {
         return res.status(403).json({ error: "Permission denied" });
       }
   
@@ -101,13 +111,13 @@ router.delete('/deleteProduct', async (req, res) =>{
         const user = await acc.findById(verified.id);
         if (!user) return res.status(404).json({ error: "User not found" });
 
-        const { productId } = req.body; // ส่ง http
+        const { productId } = req.body;
         if (!productId) return res.status(400).json({ error: "Product ID is required" });
 
         const product = await Product.findById(productId);
         if (!product) return res.status(404).json({ error: "Product not found" });
 
-        if (user.role !== "Admin" && String(product.createdBy) !== String(user._id)){ //ต้องเป็นเจ้าของ product หรือต้องเป็น admin
+        if (user.role !== "Admin" && String(product.createdBy) !== String(user._id)){ 
             return res.status(403).json({ error: "Permission denied" });
         }
 
@@ -133,7 +143,7 @@ router.get('/product/:id', async (req, res) => {
 
 router.get('/products', async (req, res) => {
     try {
-        const products = await Product.find().select('-__v'); // ไม่ต้องส่ง __v
+        const products = await Product.find().select('-__v');
         res.json(products);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -152,7 +162,7 @@ router.post("/add", async (req, res) => {
       return res.status(400).json({ error: "Invalid product or quantity" });
     }
 
-    const existing = await Product.findOne({
+    const existing = await Cart.findOne({
       userId: decoded.id,
       productId: productId,
     });
@@ -189,5 +199,60 @@ router.get("/my", async (req, res) => {
   }
 });
 
+router.delete("/removeAll", async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ error: "Not authenticated" });
+
+    const verified = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = verified.id;
+
+    const { productId } = req.body;
+    if (!productId) return res.status(400).json({ error: "Product ID is required" });
+
+    const cartItem = await Cart.findOne({ userId, productId });
+    if (!cartItem) return res.status(404).json({ error: "Item not found in cart" });
+
+    await Cart.deleteOne({ _id: cartItem._id });
+
+    res.json({ message: "✅ Item removed from cart" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+router.delete("/remove", async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ error: "Not authenticated" });
+
+    const verified = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = verified.id;
+
+    const { productId } = req.body;
+    if (!productId) {
+      return res.status(400).json({ error: "Product ID is required" });
+    }
+
+    const cartItem = await Cart.findOne({ userId, productId });
+    if (!cartItem) {
+      return res.status(404).json({ error: "Item not found in cart" });
+    }
+
+    if (cartItem.quantity > 1) {
+      await Cart.updateOne(
+        { _id: cartItem._id },
+        { $inc: { quantity: -1 } }
+      );
+    } else {
+      await Cart.deleteOne({ _id: cartItem._id });
+    }
+
+    res.json({ message: "✅ Item updated/removed from cart" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = router;
