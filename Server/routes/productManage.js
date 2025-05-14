@@ -69,37 +69,47 @@ router.get('/showProduct', async (req, res) =>{
 });
 
 router.patch('/editProduct', async (req, res) => {
-    try {
-      const token = req.cookies.token;
-      if (!token) return res.status(401).json({ error: "Not authenticated" });
-  
-      const verified = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await acc.findById(verified.id);
-      if (!user) return res.status(404).json({ error: "User not found" });
-  
-      const { productId, productName, description, price, stock, category } = req.body;
-  
-      if (!productId) return res.status(400).json({ error: "Product ID is required" });
-  
-      const product = await Product.findById(productId);
-      if (!product) return res.status(404).json({ error: "Product not found" });
+  try {
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ error: "Not authenticated" });
 
-      if (user.role !== "Admin" && String(product.createdBy) !== String(user._id)) {
-        return res.status(403).json({ error: "Permission denied" });
-      }
-  
-      if (productName !== undefined) product.productName = productName;
-      if (description !== undefined) product.description = description;
-      if (price !== undefined) product.price = price;
-      if (stock !== undefined) product.stock = stock;
-      if (category !== undefined) product.category = category;
-  
-      await product.save();
-  
-      res.json({ message: "Product updated successfully", product });
-    } catch (err) {
-      res.status(500).json({ error: err.message });
+    const verified = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await acc.findById(verified.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const { productId, productName, description, price, stock, category } = req.body;
+
+    if (!productId) return res.status(400).json({ error: "Product ID is required" });
+
+    const product = await Product.findById(productId);
+    if (!product) return res.status(404).json({ error: "Product not found" });
+
+    if (user.role !== "Admin" && String(product.createdBy) !== String(user._id)) {
+      return res.status(403).json({ error: "Permission denied" });
     }
+
+    if (price !== undefined && isNaN(Number(price))) {
+      return res.status(400).json({ error: "Price must be a valid number" });
+    }
+    if (stock !== undefined && isNaN(Number(stock))) {
+      return res.status(400).json({ error: "Stock must be a valid number" });
+    }
+
+    if (productName !== undefined) product.productName = productName;
+    if (description !== undefined) product.description = description;
+    if (price !== undefined) product.price = Number(price);
+    if (stock !== undefined) product.stock = Number(stock);
+    if (category !== undefined) product.category = category;
+
+    product.updatedAt = new Date();
+
+    await product.save();
+
+    res.json({ message: "Product updated successfully" });
+  } catch (err) {
+    console.error("Error updating product:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 router.delete('/deleteProduct', async (req, res) =>{

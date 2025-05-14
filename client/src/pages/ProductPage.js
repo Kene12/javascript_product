@@ -323,10 +323,10 @@ function ProductPage() {
                       String.fromCharCode(...new Uint8Array(product.img.data.data))
                     )}`}
                     alt={product.productName}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-60 object-cover"
                   />
                 ) : (
-                  <div className="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-500">
+                  <div className="w-full h-60 bg-gray-200 flex items-center justify-center text-gray-500">
                     No Image
                   </div>
                 )}

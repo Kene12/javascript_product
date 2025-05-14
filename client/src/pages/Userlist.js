@@ -86,14 +86,14 @@ function ListUsers() {
         ) : users.length === 0 ? (
           <p className="text-gray-500">No users found</p>
         ) : (
-          <ul className="space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {users.map((user) => (
-              <li key={user._id} className="border p-4 rounded shadow">
+              <div key={user._id} className="bg-white p-4 rounded shadow hover:shadow-md transition-all">
                 <p><strong>Username:</strong> {user.username}</p>
                 <p><strong>Email:</strong> {user.email}</p>
                 <p><strong>Role:</strong> <span className="capitalize">{user.role}</span></p>
 
-                <div className="mt-2 space-x-2">
+                <div className="mt-4 flex space-x-2">
                   <button
                     onClick={() => handleEdit(user._id)}
                     className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-1 rounded"
@@ -107,9 +107,9 @@ function ListUsers() {
                     Delete
                   </button>
                 </div>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
     </div>

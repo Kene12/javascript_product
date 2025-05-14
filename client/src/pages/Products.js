@@ -60,7 +60,7 @@ function Products() {
   };
 
   const handleEdit = (productId) => {
-    navigate(`/products/edit/${productId}`);
+    navigate(`/products/EditProduct/${productId}`);
   };
 
   const handleLogout = async () => {
@@ -108,29 +108,29 @@ function Products() {
         ) : products.length === 0 ? (
           <p className="text-gray-500">No products available to display</p>
         ) : (
-          <ul className="space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map((p) => (
-              <li key={p._id} className="border p-4 rounded shadow">
-                <p className="font-semibold">{p.productName}</p>
-                <p>{p.description}</p>
-                <p>ราคา: {p.price}</p>
-                  <div className="mt-2 space-x-2">
-                    <button
-                      onClick={() => handleEdit(p._id)}
-                      className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-1 rounded"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(p._id)}
-                      className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded"
-                    >
-                      Delete
-                    </button>
-                  </div>
-              </li>
+              <div key={p._id} className="min-h-[180px] bg-white p-4 rounded shadow hover:shadow-md transition-all">
+                <h3 className="text-lg font-bold">{p.productName}</h3>
+                <p className="text-gray-600">Price: {p.price}</p>
+
+                <div className="mt-4 flex space-x-2">
+                  <button
+                    onClick={() => handleEdit(p._id)}
+                    className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-1 rounded"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(p._id)}
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
     </div>

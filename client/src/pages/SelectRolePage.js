@@ -22,14 +22,14 @@ function SelectRolePage() {
         <h2 className="text-2xl font-bold text-center">Register as</h2>
 
         <button
-            onClick={() => navigate("/Customer")}
+            onClick={() => navigate("/register/customer")}
             className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
         >
             Customer
         </button>
 
         <button
-            onClick={() => navigate("/Merchant")}
+            onClick={() => navigate("/register/merchant")}
             className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700"
         >
             Merchant
